@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block title %}Initiate Trade - PokéTrade{% endblock %}
+
+{% block content %}
+    <h2>Initiate a New Trade</h2>
+
+    <form method="post" action="{% url 'core:initiate_trade' %}">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="form-errors">
+                {% for error in form.non_field_errors %}
+                    <p style="color: red;">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <p>Enter the username of the user you want to trade with, select the Pokémon you are offering from your collection, and choose the Pokémon species you want in return.</p>
+
+        
+        <div class="form-group">
+            <label for="{{ form.receiver_username.id_for_label }}">{{ form.receiver_username.label }}:</label>
+            {{ form.receiver_username }}
+            {% if form.receiver_username.errors %}
+                <div class="field-errors" style="color: red;">{{ form.receiver_username.errors }}</div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label for="{{ form.offered_item.id_for_label }}">{{ form.offered_item.label }}:</label>
+            {{ form.offered_item }}
+            {% if form.offered_item.errors %}
+                <div class="field-errors" style="color: red;">{{ form.offered_item.errors }}</div>
+            {% endif %}
+            <small>(Only shows Pokémon you currently own)</small>
+        </div>
+
+         <div class="form-group">
+            <label for="{{ form.requested_pokemon.id_for_label }}">{{ form.requested_pokemon.label }}:</label>
+            {{ form.requested_pokemon }}
+            {% if form.requested_pokemon.errors %}
+                <div class="field-errors" style="color: red;">{{ form.requested_pokemon.errors }}</div>
+            {% endif %}
+        </div>
+
+        <button type="submit">Send Trade Offer</button>
+    </form>
+
+    <style>
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold;}
+        .form-group input[type="text"], .form-group select { width: 100%; max-width: 400px; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .form-group .field-errors { font-size: 0.9em; margin-top: 3px;}
+        .form-group small { font-size: 0.85em; color: #666; display: block; margin-top: 3px;}
+        button[type="submit"] { padding: 10px 20px; background-color: #4CAF50; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 1em;}
+        button[type="submit"]:hover { background-color: #45a049; }
+    </style>
+{% endblock %}
