@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - PokéTrade{% endblock %}
+
+{% block content %}
+    <h2>Notifications</h2>
+
+    <div class="notification-list">
+        {% if notifications %}
+            <ul>
+                {% for notification in notifications %}
+                    <li class="notification {% if not notification.is_read %}notification-unread{% endif %}">
+                        <span class="timestamp">{{ notification.timestamp|timesince }} ago</span>
+                        <p>{{ notification.message }}</p>
+                        {% if notification.related_url %}
+                            <a href="{{ notification.related_url }}" class="view-link">View Details</a>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no notifications.</p>
+        {% endif %}
+    </div>
+
+    <style>
+        .notification-list ul { list-style: none; padding: 0; }
+        .notification {
+            border: 1px solid #ddd;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            position: relative; /* For timestamp positioning */
+        }
+        .notification-unread {
+             background-color: #eef; /* Light blue background for unread */
+             border-left: 5px solid #3B4CCA; /* Blue left border */
+        }
+        .notification .timestamp {
+            font-size: 0.8em;
+            color: #777;
+            position: absolute;
+            top: 5px;
+            right: 10px;
+        }
+         .notification p {
+            margin: 0 0 5px 0; /* Adjust spacing */
+        }
+         .notification .view-link {
+             font-size: 0.9em;
+             color: #007bff;
+             text-decoration: none;
+        }
+         .notification .view-link:hover {
+             text-decoration: underline;
+        }
+    </style>
+{% endblock %}
