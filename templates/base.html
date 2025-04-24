@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}PokéTrade{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block extra_head %}
+    <style>
+        .event-banner {
+            background-color: #FFCC00; /* Pokemon Yellow */
+            color: #333;
+            padding: 10px 20px;
+            text-align: center;
+            border-bottom: 2px solid #DAA520; /* Darker yellow border */
+            margin-bottom: 15px; /* Space below banner */
+        }
+        .event-banner h4 {
+            margin: 0 0 5px 0;
+            font-size: 1.2em;
+        }
+        .event-banner p {
+            margin: 0;
+            font-size: 0.95em;
+        }
+    </style>
+    {% endblock %}
+</head>
+<body>
+    <header>
+        <h1><a href="{% url 'core:index' %}">PokéTrade</a></h1>
+        <nav>
+            <ul>
+                <li><a href="{% url 'core:index' %}">Home</a></li>
+                {% if user.is_authenticated %}
+                    <li><a href="{% url 'core:view_collection' %}">My Collection</a></li>
+                    <li><a href="{% url 'core:view_trades' %}">Trade</a></li>
+                    <li><a href="{% url 'core:view_marketplace' %}">Marketplace</a></li>
+                    <li><a href="{% url 'core:view_store' %}">Store</a></li>
+                    <li>
+                        <a href="{% url 'core:view_notifications' %}" title="Notifications">
+                            Notifications {% if unread_notifications_count > 0 %}<span class="notification-count">{{ unread_notifications_count }}</span>{% endif %}
+                        </a>
+                    </li>
+                    <li><a href="{% url 'core:view_transaction_history' %}">History</a></li> 
+                    <li><span>{{ user.username }} ({{ user.profile.in_game_currency }} Coins)</span></li>
+                    <li><a href="{% url 'logout' %}">Logout</a></li>
+                {% else %}
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                    <li><a href="{% url 'core:register' %}">Register</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        <form method="get" action="{% url 'core:search_pokemon' %}" class="header-search-form">
+            <input type="text" name="q" placeholder="Search Pokémon..." value="{{ request.GET.q|escape }}">
+             <button type="submit">Go</button>
+        </form>
+    </header>
+    {% if active_event %}
+    <div class="event-banner">
+        <h4>Event Active: {{ active_event.name }}</h4>
+        <p>{{ active_event.description }}</p>
+    </div>
+    {% endif %}
+    <main>
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+    <footer>
+        <p>&copy; 2025 PokéTrade</p> 
+    </footer>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
