@@ -468,7 +468,7 @@ def purchase_listing(request, listing_id):
 
     TransactionHistory.objects.create(
         transaction_type=TransactionHistory.TRANSACTION_MARKET,
-        buyer=buyer_profile,
+        user_profile=request.user.profile,
         seller=seller_profile,
         collection_item=item_to_buy,
         pokemon=item_to_buy.pokemon,

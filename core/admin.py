@@ -1,4 +1,4 @@
-from pyexpat.errors import messages
+from django.contrib import messages
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.contrib.auth.models import User 
@@ -106,3 +106,11 @@ class TradingEventAdmin(admin.ModelAdmin):
     list_display = ('name', 'start_date', 'end_date', 'is_active')
     list_filter = ('start_date', 'end_date')
     search_fields = ('name', 'description')
+
+@admin.register(Pokemon)
+class PokemonAdmin(admin.ModelAdmin):
+    list_display = ('pokedex_id', 'name', 'type1', 'type2', 'rarity')
+    list_filter = ('rarity', 'type1', 'type2')
+    search_fields = ('name', 'pokedex_id')
+    list_editable = ('rarity',)
+    ordering = ('pokedex_id',)

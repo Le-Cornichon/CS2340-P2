@@ -1,0 +1,10 @@
+Django==4.2.18
+requests==2.32.3
+asgiref==3.8.1
+sqlparse==0.5.3
+charset-normalizer==3.4.1
+idna==2.8
+urllib3==2.2.3
+certifi==2025.1.31
+typing_extensions==4.13.2
+pytz==2022.1
