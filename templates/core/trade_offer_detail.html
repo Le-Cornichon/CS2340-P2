@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block title %}Trade Offer Details - PokéTrade{% endblock %}
+
+{% block content %}
+    <h2>Trade Offer Details (ID: {{ offer.id }})</h2>
+
+    <div class="offer-details">
+        <p><strong>From:</strong> {{ offer.sender.user.username }}</p>
+        <p><strong>To:</strong> {{ offer.receiver.user.username }}</p>
+        <p><strong>Status:</strong> <span class="status-{{ offer.status|lower }}">{{ offer.status }}</span></p>
+        <p><strong>Date Offered:</strong> {{ offer.created_at|date:"Y-m-d H:i" }}</p>
+        <hr>
+        <p><strong>{{ offer.sender.user.username }} Offers:</strong></p>
+        <div class="pokemon-card" style="width: 180px; margin-bottom: 15px;"> 
+            <img src="{{ offer.offered_item.pokemon.image_url }}" alt="{{ offer.offered_item.pokemon.name|capfirst }}" width="96" height="96">
+            <h3>{{ offer.offered_item.pokemon.name|capfirst }}</h3>
+            <p>Type: {{ offer.offered_item.pokemon.type1|capfirst }}{% if offer.offered_item.pokemon.type2 %}/ {{ offer.offered_item.pokemon.type2|capfirst }}{% endif %}</p>
+            <p>Rarity: {{ offer.offered_item.pokemon.rarity }}</p>
+            <p><small>(Owned since: {{ offer.offered_item.obtained_at|date:"Y-m-d" }})</small></p>
+        </div>
+
+        <p><strong>In Exchange For (Any):</strong></p>
+         <div class="pokemon-card" style="width: 180px; border-style: dashed;"> 
+            <img src="{{ offer.requested_pokemon.image_url }}" alt="{{ offer.requested_pokemon.name|capfirst }}" width="96" height="96">
+            <h3>{{ offer.requested_pokemon.name|capfirst }}</h3>
+            <p>Type: {{ offer.requested_pokemon.type1|capfirst }}{% if offer.requested_pokemon.type2 %}/ {{ offer.requested_pokemon.type2|capfirst }}{% endif %}</p>
+            <p>Rarity: {{ offer.requested_pokemon.rarity }}</p>
+        </div>
+    </div>
+
+    
+    {% if offer.status == offer.STATUS_PENDING %}
+        <div class="actions" style="margin-top: 20px;">
+            {% if is_receiver %}
+                <form method="post" action="{% url 'core:accept_trade_offer' offer.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="button-large button-accept" onclick="return confirm('Are you sure you want to accept this trade? This action cannot be undone.')">Accept Offer</button>
+                </form>
+                <form method="post" action="{% url 'core:reject_trade_offer' offer.id %}" style="display: inline; margin-left: 10px;">
+                    {% csrf_token %}
+                    <button type="submit" class="button-large button-reject">Reject Offer</button>
+                </form>
+            {% endif %}
+            {% if is_sender %}
+                 <form method="post" action="{% url 'core:cancel_trade_offer' offer.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="button-large button-cancel" onclick="return confirm('Are you sure you want to cancel this offer?')">Cancel Offer</button>
+                </form>
+            {% endif %}
+        </div>
+    {% endif %}
+
+    <p style="margin-top: 30px;"><a href="{% url 'core:view_trades' %}">&laquo; Back to Trade List</a></p>
+
+    <style>
+        .offer-details p { margin: 8px 0; }
+        .offer-details strong { margin-right: 5px; }
+        .status-pending { color: orange; font-weight: bold; }
+        .status-accepted { color: green; font-weight: bold; }
+        .status-rejected { color: red; font-weight: bold; }
+        .status-cancelled { color: gray; font-weight: bold; }
+        /* Add pokemon-card styles here if not global */
+        .pokemon-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; text-align: center; background-color: #fff; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+        .pokemon-card img { max-width: 100%; height: auto; margin-bottom: 10px; }
+        .pokemon-card h3 { margin: 10px 0 5px 0; font-size: 1.1em; color: #333; }
+        .pokemon-card p { margin: 5px 0; font-size: 0.9em; color: #555; }
+        .button-large { padding: 10px 20px; font-size: 1em; cursor: pointer; border-radius: 4px; border: none; }
+        .button-accept { background-color: #4CAF50; color: white; }
+        .button-reject { background-color: #f44336; color: white; }
+        .button-cancel { background-color: #ff9800; color: white; }
+    </style>
+
+{% endblock %}

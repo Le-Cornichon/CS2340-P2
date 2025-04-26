@@ -1,0 +1,94 @@
+{% extends "base.html" %}
+
+{% block title %}My Trades - PokéTrade{% endblock %}
+
+{% block content %}
+    <h2>My Trade Offers</h2>
+
+    <a href="{% url 'core:initiate_trade' %}" class="button-link">Initiate New Trade</a>
+
+    <div class="trade-section">
+        <h3>Incoming Offers (Pending)</h3>
+        {% if incoming_offers %}
+            <ul>
+                {% for offer in incoming_offers %}
+                    <li>
+                        From: <strong>{{ offer.sender.user.username }}</strong> |
+                        Offering: <strong>{{ offer.offered_item.pokemon.name|capfirst }}</strong> |
+                        Requesting: <strong>{{ offer.requested_pokemon.name|capfirst }}</strong> |
+                        <a href="{% url 'core:view_trade_offer' offer.id %}">View Details</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no pending incoming trade offers.</p>
+        {% endif %}
+    </div>
+
+    <div class="trade-section">
+        <h3>Outgoing Offers (Pending)</h3>
+        {% if outgoing_offers %}
+            <ul>
+                {% for offer in outgoing_offers %}
+                     <li>
+                        To: <strong>{{ offer.receiver.user.username }}</strong> |
+                        Offering: <strong>{{ offer.offered_item.pokemon.name|capfirst }}</strong> |
+                        Requesting: <strong>{{ offer.requested_pokemon.name|capfirst }}</strong> |
+                        <a href="{% url 'core:view_trade_offer' offer.id %}">View Details</a>
+                        
+                        <form method="post" action="{% url 'core:cancel_trade_offer' offer.id %}" style="display: inline; margin-left: 10px;">
+                            {% csrf_token %}
+                            <button type="submit" class="button-small button-cancel" onclick="return confirm('Are you sure you want to cancel this offer?')">Cancel</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no pending outgoing trade offers.</p>
+        {% endif %}
+    </div>
+
+    <div class="trade-section">
+        <h3>Completed/Past Offers</h3>
+         {% if completed_offers %}
+            <ul>
+                {% for offer in completed_offers %}
+                     <li>
+                        {% if offer.sender == request.user.profile %}
+                            To: <strong>{{ offer.receiver.user.username }}</strong>
+                        {% else %}
+                             From: <strong>{{ offer.sender.user.username }}</strong>
+                        {% endif %}
+                        | Offer: {{ offer.offered_item.pokemon.name|capfirst }} for {{ offer.requested_pokemon.name|capfirst }}
+                        | Status: <strong>{{ offer.status }}</strong>
+                        | Last Updated: {{ offer.updated_at|date:"Y-m-d H:i" }}
+                        | <a href="{% url 'core:view_trade_offer' offer.id %}">View Details</a>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You have no completed trade history yet.</p>
+        {% endif %}
+    </div>
+
+    <style>
+        .button-link {
+            display: inline-block;
+            padding: 10px 15px;
+            background-color: #3B4CCA;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        .button-link:hover { background-color: #2a37a0; }
+        .trade-section { margin-bottom: 30px; }
+        .trade-section h3 { border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 10px; }
+        .trade-section ul { list-style: none; padding: 0; }
+        .trade-section li { margin-bottom: 10px; padding: 10px; background-color: #f9f9f9; border: 1px solid #eee; border-radius: 4px; }
+        .button-small { padding: 3px 8px; font-size: 0.9em; cursor: pointer; border-radius: 3px; border: none; }
+        .button-accept { background-color: #4CAF50; color: white; }
+        .button-reject { background-color: #f44336; color: white; }
+        .button-cancel { background-color: #ff9800; color: white; }
+    </style>
+{% endblock %}

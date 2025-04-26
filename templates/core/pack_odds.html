@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Pack Odds" }} - PokéTrade{% endblock %}
+
+{% block content %}
+    <h2>{{ page_title }}</h2>
+
+    <p>Here are the approximate chances of drawing Pokémon of each rarity from the <strong>{{ pack.name }}</strong>:</p>
+
+    {% if odds %}
+    <table class="odds-table">
+        <thead>
+            <tr>
+                <th>Rarity</th>
+                <th>Probability</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for odd in odds %}
+            <tr>
+                <td>{{ odd.rarity }}</td>
+                <td>{{ odd.probability|floatformat:"2%" }}</td> 
+            </tr>
+            {% endfor %}
+            
+             </tbody>
+    </table>
+    {% else %}
+    <p>No odds have been defined for this pack yet.</p>
+    {% endif %}
+
+    <p style="margin-top: 20px;">
+        <a href="{% url 'core:view_packs' %}">&laquo; Back to Packs</a>
+    </p>
+
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .odds-table {
+        width: 100%;
+        max-width: 400px; /* Limit width */
+        margin-top: 20px;
+        border-collapse: collapse;
+    }
+    .odds-table th, .odds-table td {
+        border: 1px solid #ddd;
+        padding: 8px 12px;
+        text-align: left;
+    }
+    .odds-table th {
+        background-color: #f2f2f2;
+        font-weight: bold;
+    }
+    .odds-table td:last-child {
+         text-align: right;
+    }
+</style>
+{% endblock %}

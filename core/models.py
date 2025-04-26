@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.conf import settings
+import random
+from django.utils import timezone
 
 
 class Pokemon(models.Model):
@@ -31,6 +33,82 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
+class CollectionItem(models.Model):
+    owner = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='collection')
+    pokemon = models.ForeignKey(Pokemon, on_delete=models.CASCADE)
+    obtained_at = models.DateTimeField(default=timezone.now)
+
+    def __str__(self):
+        return f"{self.owner.user.username} owns {self.pokemon.name.capitalize()}"
+
+    class Meta:
+        ordering = ['obtained_at']
+
+class TradeOffer(models.Model):
+    STATUS_PENDING = 'Pending'
+    STATUS_ACCEPTED = 'Accepted'
+    STATUS_REJECTED = 'Rejected'
+    STATUS_CANCELLED = 'Cancelled'
+    STATUS_CHOICES = [
+        (STATUS_PENDING, 'Pending'),
+        (STATUS_ACCEPTED, 'Accepted'),
+        (STATUS_REJECTED, 'Rejected'),
+        (STATUS_CANCELLED, 'Cancelled'),
+    ]
+
+    sender = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='sent_trade_offers')
+    receiver = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='received_trade_offers')
+    offered_item = models.ForeignKey(CollectionItem, on_delete=models.CASCADE, related_name='trade_offers_as_offer')
+    requested_pokemon = models.ForeignKey(Pokemon, on_delete=models.CASCADE, related_name='trade_offers_as_request')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_PENDING)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    is_suspicious = models.BooleanField(default=False, help_text="Admin flag for potentially unfair trades")
+
+
+    def __str__(self):
+        return f"Trade Offer {self.id}: {self.sender.user.username} -> {self.receiver.user.username} ({self.status})"
+
+    class Meta:
+        ordering = ['-created_at']
+
+class MarketplaceListing(models.Model):
+    STATUS_AVAILABLE = 'Available'
+    STATUS_SOLD = 'Sold'
+    STATUS_CANCELLED = 'Cancelled'
+    STATUS_CHOICES = [
+        (STATUS_AVAILABLE, 'Available'),
+        (STATUS_SOLD, 'Sold'),
+        (STATUS_CANCELLED, 'Cancelled'),
+    ]
+
+    item = models.OneToOneField(CollectionItem, on_delete=models.CASCADE, related_name='listing')
+    seller = models.ForeignKey(UserProfile, on_delete=models.CASCADE, related_name='listings')
+    price = models.PositiveIntegerField()
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default=STATUS_AVAILABLE)
+    listed_at = models.DateTimeField(auto_now_add=True)
+    sold_at = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"Listing {self.id}: {self.item.pokemon.name.capitalize()} by {self.seller.user.username} for {self.price} Coins ({self.status})"
+
+    class Meta:
+        ordering = ['-listed_at']
+
+class PokemonPack(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    description = models.TextField(blank=True)
+    cost = models.PositiveIntegerField(help_text="Cost in in-game currency")
+    image_url = models.URLField(max_length=300, blank=True, null=True, help_text="Optional image for the pack")
+    is_available = models.BooleanField(default=True, help_text="Is this pack currently available in the store?")
+
+    def __str__(self):
+        return f"{self.name} ({self.cost} Coins)"
+
+    class Meta:
+        ordering = ['cost', 'name']
+
 
 class TransactionHistory(models.Model):
     TRANSACTION_MARKET = 'Market Purchase'
@@ -100,4 +178,25 @@ class PackRarityOdds(models.Model):
         ordering = ['pack', 'rarity']
         verbose_name_plural = "Pack Rarity Odds"
 
+class TradingEventManager(models.Manager):
+    def get_active_events(self):
+        now = timezone.now()
+        return self.filter(start_date__lte=now, end_date__gte=now)
 
+class TradingEvent(models.Model):
+    name = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    objects = TradingEventManager()
+
+    def is_active(self):
+        now = timezone.now()
+        return self.start_date <= now <= self.end_date
+    is_active.boolean = True
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        ordering = ['-start_date']

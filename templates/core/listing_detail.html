@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Listing Details - PokéTrade{% endblock %}
+
+{% block content %}
+    <h2>Marketplace Listing Details</h2>
+
+    <div class="listing-detail-card" style="display: flex; gap: 30px; flex-wrap: wrap;">
+        
+        <div class="pokemon-card" style="width: 200px;">
+             <img src="{{ listing.item.pokemon.image_url }}" alt="{{ listing.item.pokemon.name|capfirst }}" width="120" height="120">
+            <h3>{{ listing.item.pokemon.name|capfirst }}</h3>
+            <p>Type: {{ listing.item.pokemon.type1|capfirst }}{% if listing.item.pokemon.type2 %}/ {{ listing.item.pokemon.type2|capfirst }}{% endif %}</p>
+            <p>Rarity: {{ listing.item.pokemon.rarity }}</p>
+            <p><small>(Item ID: {{ listing.item.id }})</small></p>
+        </div>
+
+        
+        <div>
+            <p><strong>Seller:</strong> {{ listing.seller.user.username }}</p>
+            <p><strong>Price:</strong> <span style="font-size: 1.2em; font-weight: bold; color: green;">{{ listing.price }} Coins</span></p>
+            <p><strong>Status:</strong> {{ listing.status }}</p>
+            <p><strong>Listed At:</strong> {{ listing.listed_at|date:"Y-m-d H:i" }}</p>
+            {% if listing.status == listing.STATUS_SOLD and listing.sold_at %}
+                 <p><strong>Sold At:</strong> {{ listing.sold_at|date:"Y-m-d H:i" }}</p>
+            {% endif %}
+
+            
+            <div class="actions" style="margin-top: 20px;">
+                {% if listing.status == listing.STATUS_AVAILABLE %}
+                    {% if user.is_authenticated %}
+                        {% if user.profile == listing.seller %}
+                            
+                            <form method="post" action="{% url 'core:cancel_listing' listing.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="button-cancel" onclick="return confirm('Are you sure you want to cancel this listing?')">Cancel Listing</button>
+                            </form>
+                        {% else %}
+                            
+                            <form method="post" action="{% url 'core:purchase_listing' listing.id %}">
+                                {% csrf_token %}
+                                <button type="submit" class="button-buy" onclick="return confirm('Confirm purchase for {{ listing.price }} Coins?')">Buy Now ({{ listing.price }} Coins)</button>
+                            </form>
+                        {% endif %}
+                    {% else %}
+                        <p><a href="{% url 'login' %}?next={{ request.path }}">Login</a> to purchase this item.</p>
+                    {% endif %}
+                 {% elif listing.status == listing.STATUS_SOLD %}
+                     <p>This item has been sold.</p>
+                 {% else %}
+                      <p>This listing has been cancelled.</p>
+                 {% endif %}
+            </div>
+        </div>
+
+        
+        <div style="width: 100%; margin-top: 20px;">
+            <hr>
+            <h4>Price History for {{ listing.item.pokemon.name|capfirst }}</h4>
+            {% if average_sale_price %}
+                <p>Average Sale Price: <strong>{{ average_sale_price|floatformat:0 }} Coins</strong></p>
+            {% else %}
+                 <p>No average sale price data available yet for this Pokémon.</p>
+            {% endif %}
+
+            {% if recent_sales %}
+                <p>Recent Sales:</p>
+                <ul>
+                    {% for sale in recent_sales %}
+                        <li>Sold for {{ sale.price }} Coins on {{ sale.timestamp|date:"Y-m-d" }}</li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                 <p>No recent sales recorded for this Pokémon.</p>
+            {% endif %}
+        </div>
+
+    </div>
+
+
+    <p style="margin-top: 30px;"><a href="{% url 'core:view_marketplace' %}">&laquo; Back to Marketplace</a></p>
+
+    <style>
+        /* Add/reuse pokemon-card, button styles */
+        .pokemon-card { border: 1px solid #ddd; border-radius: 8px; padding: 15px; text-align: center; background-color: #fff; box-shadow: 2px 2px 5px rgba(0,0,0,0.1); }
+        .pokemon-card img { max-width: 100%; height: auto; margin-bottom: 10px; }
+        .pokemon-card h3 { margin: 10px 0 5px 0; font-size: 1.1em; color: #333; }
+        .pokemon-card p { margin: 5px 0; font-size: 0.9em; color: #555; }
+        .button-buy { padding: 10px 15px; background-color: #28a745; color: white; border: none; border-radius: 4px; font-size: 1em; cursor: pointer;}
+        .button-buy:hover { background-color: #218838; }
+        .button-cancel { padding: 10px 15px; background-color: #ff9800; color: white; border: none; border-radius: 4px; font-size: 1em; cursor: pointer;}
+        .button-cancel:hover { background-color: #e68a00; }
+        .listing-detail-card p { margin: 10px 0; }
+    </style>
+{% endblock %}

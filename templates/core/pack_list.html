@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ page_title|default:"Packs" }} - PokéTrade{% endblock %}
+
+{% block content %}
+    <h2>{{ page_title|default:"Available Packs" }}</h2>
+    <p>Spend your Coins on packs to get new Pokémon!</p>
+    <p>Your balance: {{ request.user.profile.in_game_currency }} Coins</p>
+
+    <div class="pack-grid">
+        {% for pack in packs %}
+        <div class="pack-card">
+            {% if pack.image_url %}
+                <img src="{{ pack.image_url }}" alt="{{ pack.name }}" class="pack-image">
+            {% else %}
+                <div class="pack-image-placeholder">?</div>
+            {% endif %}
+            <h3>{{ pack.name }}</h3>
+            <p class="pack-description">{{ pack.description|default:"Contains random Pokémon!" }}</p>
+            <p class="pack-cost">Cost: {{ pack.cost }} Coins</p>
+            <div class="pack-actions">
+                <a href="{% url 'core:view_pack_odds' pack.id %}" class="button-info">View Odds</a>
+                {% if request.user.profile.in_game_currency >= pack.cost %}
+                <form method="post" action="{% url 'core:purchase_pack' pack.id %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="button-buy" onclick="return confirm('Buy {{ pack.name }} for {{ pack.cost }} Coins?')">Buy Pack</button>
+                </form>
+                {% else %}
+                <button type="button" class="button-disabled" disabled>Not Enough Coins</button>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p>There are no Pokémon packs available at the moment. Check back later!</p>
+        {% endfor %}
+    </div>
+
+    <p><a href="{% url 'core:view_store' %}">&laquo; Back to Store</a></p>
+
+{% endblock %}
+
+{% block extra_head %}
+<style>
+    .pack-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive grid */
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .pack-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 15px;
+        text-align: center;
+        background-color: #fff;
+        box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+    .pack-image {
+        max-width: 100%;
+        height: 150px; /* Fixed height */
+        object-fit: contain; /* Scale image nicely */
+        margin-bottom: 10px;
+    }
+    .pack-image-placeholder {
+        height: 150px;
+        background-color: #eee;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 50px;
+        color: #aaa;
+        margin-bottom: 10px;
+        border-radius: 4px;
+    }
+    .pack-card h3 { margin: 10px 0 5px 0; font-size: 1.3em; color: #333; }
+    .pack-description { font-size: 0.9em; color: #555; min-height: 40px; } /* Min height */
+    .pack-cost { font-weight: bold; margin: 10px 0; font-size: 1.1em; color: #e3350d; }
+    .pack-actions { margin-top: 15px; }
+    .pack-actions .button-info, .pack-actions .button-buy, .pack-actions .button-disabled {
+        display: inline-block; padding: 8px 15px; margin: 5px; text-decoration: none; border-radius: 4px; border: none; cursor: pointer; font-size: 0.9em;
+    }
+    .button-info { background-color: #007bff; color: white; }
+    .button-info:hover { background-color: #0056b3; }
+    .button-buy { background-color: #28a745; color: white; }
+    .button-buy:hover { background-color: #1e7e34; }
+    .button-disabled { background-color: #6c757d; color: #ccc; cursor: not-allowed; }
+</style>
+{% endblock %}

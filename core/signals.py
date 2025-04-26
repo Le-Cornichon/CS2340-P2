@@ -69,3 +69,28 @@ def notify_trade_offer_update(sender, instance, created, **kwargs):
             print(f"Notification created for {recipient.user.username}: {message}")
         except Exception as e:
              print(f"Error creating trade notification: {e}")
+
+
+@receiver(post_save, sender=MarketplaceListing)
+def notify_marketplace_update(sender, instance, created, **kwargs):
+    """Send notification when a marketplace item is sold."""
+    recipient = None
+    message = None
+    related_url = reverse('core:view_listing_detail', args=[instance.id])
+
+    if not created and instance.status == MarketplaceListing.STATUS_SOLD:
+        recipient = instance.seller
+        item_name = instance.item.pokemon.name.capitalize()
+        price = instance.price
+        message = f"Your {item_name} has been sold on the marketplace for {price} Coins!"
+
+    if recipient and message:
+        try:
+            Notification.objects.create(
+                recipient=recipient,
+                message=message,
+                related_url=related_url
+            )
+            print(f"Notification created for {recipient.user.username}: {message}")
+        except Exception as e:
+             print(f"Error creating marketplace notification: {e}")
